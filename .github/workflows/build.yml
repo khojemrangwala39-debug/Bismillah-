@@ -27,20 +27,23 @@ jobs:
       run: |
         pip install --upgrade "pip<24.1" "setuptools<69.0.0" "cython<3.0.0" buildozer
 
-    - name: Link SDK Tools & Accept Licenses
+    - name: Setup Android SDK & Force Pre-Install Build-Tools
       run: |
-        # Directories create karna
+        # Setup directories
         mkdir -p ~/.buildozer/android/platform/android-sdk/tools/bin
         mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
         mkdir -p $ANDROID_HOME/licenses
 
-        # Legacy sdkmanager symlink
+        # Legacy path link
         ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
 
-        # Auto accept licenses
+        # Force accept ALL licenses on System SDK
         yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-        # Expand escape characters with %b so each hash goes to a new line
+        # Explicitly pre-install build-tools;37.0.0 and platform-tools
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;37.0.0" "platforms;android-33" "platform-tools" || true
+
+        # Inject hashes everywhere Buildozer checks
         LICENSES="89338d0b9d3b5722b9f2201f100231b61d36d22d\nd56f518e54777e7b2f27d738098d57308730d1d8\n24333f8a637b3702d54201217836d3658a0121edf\n84831b9409646a918e30573bab4c9c91346d8abd\n33b622425881129ea4c55f4437a2b72a507f28d7"
         printf "%b\n" "$LICENSES" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
         printf "%b\n" "$LICENSES" > $ANDROID_HOME/licenses/android-sdk-license
