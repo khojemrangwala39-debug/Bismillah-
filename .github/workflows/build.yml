@@ -27,20 +27,23 @@ jobs:
       run: |
         pip install --upgrade "pip<24.1" "setuptools<69.0.0" "cython<3.0.0" buildozer
 
-    - name: Pre-accept SDK Licenses Globally & Set Environment
+    - name: Link SDK Tools & Accept Licenses
       run: |
-        mkdir -p ~/.android
-        touch ~/.android/repositories.cfg
-        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-        
-        # Buildozer internal SDK directories
+        # Directories create karna
+        mkdir -p ~/.buildozer/android/platform/android-sdk/tools/bin
         mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
         mkdir -p $ANDROID_HOME/licenses
-        
-        # Inject license hashes safely
+
+        # Legacy sdkmanager symlink
+        ln -sf $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager ~/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
+
+        # Auto accept licenses
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+        # Expand escape characters with %b so each hash goes to a new line
         LICENSES="89338d0b9d3b5722b9f2201f100231b61d36d22d\nd56f518e54777e7b2f27d738098d57308730d1d8\n24333f8a637b3702d54201217836d3658a0121edf\n84831b9409646a918e30573bab4c9c91346d8abd\n33b622425881129ea4c55f4437a2b72a507f28d7"
-        printf "$LICENSES" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-        printf "$LICENSES" > $ANDROID_HOME/licenses/android-sdk-license
+        printf "%b\n" "$LICENSES" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        printf "%b\n" "$LICENSES" > $ANDROID_HOME/licenses/android-sdk-license
 
     - name: Build APK with Buildozer
       run: |
